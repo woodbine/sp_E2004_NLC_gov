@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 
 #### IMPORTS 1.0
@@ -9,8 +8,7 @@ import scraperwiki
 import urllib2
 from datetime import datetime
 from bs4 import BeautifulSoup
-import requests
-from dateutil.parser import parse
+
 
 #### FUNCTIONS 1.0
 
@@ -40,19 +38,20 @@ def validateFilename(filename):
 
 def validateURL(url):
     try:
-        r = requests.get(url, allow_redirects=True, timeout=20)
+        r = urllib2.urlopen(url)
         count = 1
-        while r.status_code == 500 and count < 4:
+        while r.getcode() == 500 and count < 4:
             print ("Attempt {0} - Status code: {1}. Retrying.".format(count, r.status_code))
             count += 1
-            r = requests.get(url, allow_redirects=True, timeout=20)
+            r = urllib2.urlopen(url)
         sourceFilename = r.headers.get('Content-Disposition')
+
         if sourceFilename:
             ext = os.path.splitext(sourceFilename)[1].replace('"', '').replace(';', '').replace(' ', '')
         else:
             ext = os.path.splitext(url)[1]
-        validURL = r.status_code == 200
-        validFiletype = ext in ['.csv', '.xls', '.xlsx']
+        validURL = r.getcode() == 200
+        validFiletype = ext.lower() in ['.csv', '.xls', '.xlsx']
         return validURL, validFiletype
     except:
         print ("Error validating URL.")
@@ -96,7 +95,6 @@ data = []
 html = urllib2.urlopen(url)
 soup = BeautifulSoup(html, 'lxml')
 
-
 #### SCRAPE DATA
 
 try:
@@ -114,16 +112,16 @@ while next_links:
             html_csv = urllib2.urlopen(url_link)
             sp_link = BeautifulSoup(html_csv, 'lxml')
             try:
-                csv_link = sp_link.find('div', 'oAssetAttachmentDetailInner').a['href']
+                csv_link = sp_link.find('div', 'oAssetAttachmentDetailInner').find('a')['href']
             except: break
             if '.csv' in csv_link:
-                try:
                     url = 'http://www.northlincs.gov.uk' + csv_link
                     csvFiles = sp_link.find('div', 'oAssetAttachmentDetailInner').a['title']
                     csvfile = csvFiles.replace('_', ' ').replace('-', ' ').replace('MASTER', ' ').replace('February.csv', 'February 2015.csv').replace('DECEMEBER.csv', 'December 2014.csv ')
                     csvM = csvfile.split(' ')
                     csvMth = csvM[4][:3]
                     csvYr = csvM[5][:4]
+
                     if len(csvM) == 10:
                         csvMth = csvM[6][:3]
                         csvYr = csvM[7][:4]
@@ -132,7 +130,6 @@ while next_links:
                         csvYr = csvM[6][:4]
                     csvMth = convert_mth_strings(csvMth.upper())
                     data.append([csvYr, csvMth, url])
-                except: pass
     try:
         next_pages = soup.find('span', 'pagination-next')
     except: break
@@ -140,7 +137,8 @@ while next_links:
         next_links = next_pages.find('a')['href']
     except: break
     html_next = urllib2.urlopen('http://www.northlincs.gov.uk/your-council/about-your-council/policy-and-budgets/supplier-payments' + next_links)
-    soup = BeautifulSoup(html_next)
+    soup = BeautifulSoup(html_next, 'lxml')
+
 
 #### STORE DATA 1.0
 
