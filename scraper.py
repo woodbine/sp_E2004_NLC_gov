@@ -119,8 +119,11 @@ while next_links:
                     csvFiles = sp_link.find('div', 'oAssetAttachmentDetailInner').a['title']
                     csvfile = csvFiles.replace('_', ' ').replace('-', ' ').replace('MASTER', ' ').replace('February.csv', 'February 2015.csv').replace('DECEMEBER.csv', 'December 2014.csv ')
                     csvM = csvfile.split(' ')
-                    csvMth = csvM[4][:3]
-                    csvYr = csvM[5][:4]
+                    try:
+                        csvMth = csvM[4][:3]
+                        csvYr = csvM[5][:4]
+                    except:
+                        pass
 
                     if len(csvM) == 10:
                         csvMth = csvM[6][:3]
@@ -128,6 +131,18 @@ while next_links:
                     if len(csvM) == 9 and csvM[4] == '':
                         csvMth = csvM[5][:3]
                         csvYr = csvM[6][:4]
+                    if len(csvM) == 4:
+                        csvMth = csvM[0][:3]
+                        csvYr=csvM[1][:4]
+                    if '895K' in csvYr:
+                        csvYr = '2016'
+                        csvMth = '07'
+                    if '11.c' in csvYr:
+                        csvYr = '2016'
+                        csvMth = '02'
+                    if '30604' in url:
+                        csvYr = '2016'
+                        csvMth = '03'
                     csvMth = convert_mth_strings(csvMth.upper())
                     data.append([csvYr, csvMth, url])
     try:
