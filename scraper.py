@@ -116,33 +116,10 @@ while next_links:
             except: break
             if '.csv' in csv_link:
                     url = 'http://www.northlincs.gov.uk' + csv_link
-                    csvFiles = sp_link.find('div', 'oAssetAttachmentDetailInner').a['title']
-                    csvfile = csvFiles.replace('_', ' ').replace('-', ' ').replace('MASTER', ' ').replace('February.csv', 'February 2015.csv').replace('DECEMEBER.csv', 'December 2014.csv ')
-                    csvM = csvfile.split(' ')
-                    try:
-                        csvMth = csvM[4][:3]
-                        csvYr = csvM[5][:4]
-                    except:
-                        pass
-
-                    if len(csvM) == 10:
-                        csvMth = csvM[6][:3]
-                        csvYr = csvM[7][:4]
-                    if len(csvM) == 9 and csvM[4] == '':
-                        csvMth = csvM[5][:3]
-                        csvYr = csvM[6][:4]
-                    if len(csvM) == 4:
-                        csvMth = csvM[0][:3]
-                        csvYr=csvM[1][:4]
-                    if '895K' in csvYr:
-                        csvYr = '2016'
-                        csvMth = '07'
-                    if '11.c' in csvYr:
-                        csvYr = '2016'
-                        csvMth = '02'
-                    if '30604' in url:
-                        csvYr = '2016'
-                        csvMth = '03'
+                    year_title = sp_link.find('span', text=re.compile('Financial Year')).find_next('div', 'answer').text
+                    month_title = sp_link.find('span', text=re.compile('Month - Format')).find_next('div', 'answer').text
+                    csvYr = year_title.split('/')[0]
+                    csvMth = month_title.split('-')[0].strip()[:3]
                     csvMth = convert_mth_strings(csvMth.upper())
                     data.append([csvYr, csvMth, url])
     try:
